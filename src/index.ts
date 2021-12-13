@@ -186,6 +186,7 @@ export class MediaStorage implements StorageEngine {
               // eslint-disable-next-line no-param-reassign
               file.media = media;
             })
+            .catch(() => {})
             .finally(() => {
               callback(null, {
                 destination,
