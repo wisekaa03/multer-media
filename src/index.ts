@@ -5,7 +5,7 @@ import { join } from 'path';
 import stream from 'stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
-import { ffprobe } from 'media-probe';
+import { ffprobe, type FfprobeData } from 'media-probe';
 
 declare global {
   namespace Express {
@@ -13,7 +13,7 @@ declare global {
       /** Object containing file metadata and access information. */
       interface File {
         hash?: string;
-        media?: any;
+        media?: FfprobeData;
       }
     }
   }
