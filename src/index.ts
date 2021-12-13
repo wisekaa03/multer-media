@@ -6,6 +6,7 @@ import stream from 'stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
 import { ffprobe, type FfprobeData } from 'media-probe';
+import { BinaryToTextEncoding } from 'crypto';
 
 declare global {
   namespace Express {
@@ -52,6 +53,10 @@ export interface MediaStorageOptions {
    * Hash algorithm
    */
   algorithm?: string;
+  /**
+   * Encoding algorithm
+   */
+  algorithmEncoding?: BinaryToTextEncoding;
 
   /**
    * A function that determines the name of the uploaded file. If nothing
@@ -99,10 +104,13 @@ export class MediaStorage implements StorageEngine {
 
   readonly algorithm: string;
 
+  readonly algorithmEncoding: BinaryToTextEncoding;
+
   constructor(readonly options: MediaStorageOptions) {
     this.getDestination = options.destination || this.getDefaultDestination;
     this.getFilename = options.filename || this.getDefaultFilename;
     this.algorithm = options.algorithm || 'sha256';
+    this.algorithmEncoding = options.algorithmEncoding || 'base64url';
   }
 
   getDefaultDestination(
@@ -190,7 +198,7 @@ export class MediaStorage implements StorageEngine {
                 filename,
                 path: finalPath,
                 size: outStream.bytesWritten,
-                hash: md5sum.digest('base64'),
+                hash: md5sum.digest(this.algorithmEncoding),
                 media,
               });
             });
