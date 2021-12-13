@@ -17,7 +17,7 @@
     "media"
   ],
   "scripts": {
-    "prebuild": "rimraf dist",
+    "prepare": "yarn build",
     "build": "rimraf ./dist && tsc -p tsconfig.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:dev": "tsc -w",
