@@ -12,7 +12,7 @@ declare global {
     namespace Multer {
       /** Object containing file metadata and access information. */
       interface File {
-        hash?: string;
+        hash: string;
         media?: FfprobeData;
       }
     }
@@ -49,7 +49,7 @@ export interface MediaStorageOptions {
   destination?: MediaStorageCallback;
 
   /**
-   * Algorithm
+   * Hash algorithm
    */
   algorithm?: string;
 
@@ -69,8 +69,7 @@ export interface MediaStorageOptions {
    *
    * @param req The Express `Request` object.
    * @param file Object containing information about the processed file.
-   * @param destination Destination path
-   * @param filename File name
+   * @param src Stream Readable
    */
   start?: MediaStorageDataCallback;
 
@@ -168,8 +167,7 @@ export class MediaStorage implements StorageEngine {
           next();
         });
         outStream.on('finish', () => {
-          // eslint-disable-next-line no-param-reassign
-          file.hash = md5sum.digest('base64');
+          let media: FfprobeData;
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
@@ -182,9 +180,8 @@ export class MediaStorage implements StorageEngine {
             countFrames: false,
             countPackets: false,
           })
-            .then((media) => {
-              // eslint-disable-next-line no-param-reassign
-              file.media = media;
+            .then((probe) => {
+              media = probe;
             })
             .catch(() => {})
             .finally(() => {
@@ -193,6 +190,8 @@ export class MediaStorage implements StorageEngine {
                 filename,
                 path: finalPath,
                 size: outStream.bytesWritten,
+                hash: md5sum.digest('base64'),
+                media,
               });
             });
         });
