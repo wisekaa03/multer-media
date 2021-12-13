@@ -169,21 +169,31 @@ export class MediaStorage implements StorageEngine {
         });
         outStream.on('finish', () => {
           // eslint-disable-next-line no-param-reassign
-          file.hash = md5sum.digest('hex');
+          file.hash = md5sum.digest('base64');
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
-          ffprobe(finalPath).then((media) => {
-            // eslint-disable-next-line no-param-reassign
-            file.media = media;
-
-            callback(null, {
-              destination,
-              filename,
-              path: finalPath,
-              size: outStream.bytesWritten,
+          ffprobe(finalPath, {
+            showFormat: true,
+            showStreams: true,
+            showFrames: false,
+            showPackets: false,
+            showPrograms: false,
+            countFrames: false,
+            countPackets: false,
+          })
+            .then((media) => {
+              // eslint-disable-next-line no-param-reassign
+              file.media = media;
+            })
+            .finally(() => {
+              callback(null, {
+                destination,
+                filename,
+                path: finalPath,
+                size: outStream.bytesWritten,
+              });
             });
-          });
         });
       });
     });
