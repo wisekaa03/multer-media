@@ -1,7 +1,7 @@
 import { createWriteStream, unlink } from 'fs';
 import { createHash, randomBytes } from 'node:crypto';
 import os from 'os';
-import { join } from 'path';
+import { resolve as pathResolve } from 'path';
 import stream from 'stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
@@ -156,7 +156,8 @@ export class MediaStorage implements StorageEngine {
           return callback(errFilename, file);
         }
 
-        const finalPath = join(destination, filename);
+        const destinationPath = pathResolve(destination);
+        const finalPath = pathResolve(destinationPath, filename);
         const outStream = createWriteStream(finalPath);
         const md5sum = createHash(this.algorithm);
 
@@ -194,7 +195,7 @@ export class MediaStorage implements StorageEngine {
             .catch(() => {})
             .finally(() => {
               callback(null, {
-                destination,
+                destination: destinationPath,
                 filename,
                 path: finalPath,
                 size: outStream.bytesWritten,
