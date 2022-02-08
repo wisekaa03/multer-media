@@ -161,22 +161,24 @@ export class MediaStorage implements StorageEngine {
         const outStream = createWriteStream(finalPath);
         const md5sum = createHash(this.algorithm);
 
-        file.stream.pipe(outStream);
-        if (this.options.start) {
-          outStream.on('open', () => {
+        file.stream.on('open', () => {
+          if (this.options.start) {
             this.options.start(req, file, outStream);
-          });
-        }
-        outStream.on('error', callback);
-        outStream.on('data', (chunk, encoding, next) => {
-          md5sum.update(chunk, encoding);
-          if (this.options.write) {
-            this.options.write(req, file, outStream, chunk, encoding);
           }
-          next();
         });
+        file.stream.on('error', callback);
+        file.stream.on('data', (chunk: any) => {
+          md5sum.update(chunk);
+          if (this.options.write) {
+            this.options.write(req, file, outStream, chunk);
+          }
+        });
+        file.stream.pipe(outStream);
+
         outStream.on('finish', () => {
           let media: FfprobeData;
+          let hash: string;
+          md5sum.end();
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
@@ -191,6 +193,7 @@ export class MediaStorage implements StorageEngine {
           })
             .then((probe) => {
               media = probe;
+              hash = md5sum.digest(this.algorithmEncoding);
             })
             .catch(() => {})
             .finally(() => {
@@ -199,7 +202,7 @@ export class MediaStorage implements StorageEngine {
                 filename,
                 path: finalPath,
                 size: outStream.bytesWritten,
-                hash: md5sum.digest(this.algorithmEncoding),
+                hash,
                 media,
               });
             });
