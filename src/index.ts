@@ -76,7 +76,7 @@ export interface MediaStorageOptions {
    * @param file Object containing information about the processed file.
    * @param src Stream Readable
    */
-  start?: MediaStorageDataCallback;
+  open?: MediaStorageDataCallback;
 
   /**
    * A function that will be executed on write events
@@ -85,7 +85,7 @@ export interface MediaStorageOptions {
    * @param file Object containing information about the processed file.
    * @param src Stream Readable
    */
-  write?: MediaStorageDataCallback;
+  data?: MediaStorageDataCallback;
 
   /**
    * A function that will be executed on write events
@@ -161,24 +161,25 @@ export class MediaStorage implements StorageEngine {
         const outStream = createWriteStream(finalPath);
         const md5sum = createHash(this.algorithm);
 
-        file.stream.on('open', () => {
-          if (this.options.start) {
-            this.options.start(req, file, outStream);
-          }
-        });
+        if (this.options.open) {
+          file.stream.on('open', () => {
+            this.options.open(req, file, outStream);
+          });
+        }
         file.stream.on('error', callback);
         file.stream.on('data', (chunk: any) => {
           md5sum.update(chunk);
-          if (this.options.write) {
-            this.options.write(req, file, outStream, chunk);
+          if (this.options.data) {
+            this.options.data(req, file, outStream, chunk);
           }
         });
         file.stream.pipe(outStream);
 
         outStream.on('finish', () => {
           let media: FfprobeData;
-          let hash: string;
-          md5sum.end();
+          const hash = md5sum.end().digest(this.algorithmEncoding);
+          // eslint-disable-next-line no-param-reassign
+          file.hash = hash;
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
@@ -193,7 +194,6 @@ export class MediaStorage implements StorageEngine {
           })
             .then((probe) => {
               media = probe;
-              hash = md5sum.digest(this.algorithmEncoding);
             })
             .catch(() => {})
             .finally(() => {
