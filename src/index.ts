@@ -1,8 +1,8 @@
-import { createWriteStream, unlink } from 'fs';
+import { createWriteStream, unlink } from 'node:fs';
 import { createHash, randomBytes } from 'node:crypto';
-import os from 'os';
-import { resolve as pathResolve } from 'path';
-import stream from 'stream';
+import os from 'node:os';
+import { resolve as pathResolve } from 'node:path';
+import stream from 'node:stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
 import { ffprobe, type FfprobeData } from 'media-probe';
