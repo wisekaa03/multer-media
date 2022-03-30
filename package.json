@@ -1,6 +1,6 @@
 {
   "name": "multer-media",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Multer Media files upload",
   "author": "Stanislav V Vyaliy",
   "private": false,
@@ -16,6 +16,17 @@
     "multer",
     "media"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisekaa03/multer-media"
+  },
+  "bugs": {
+    "url": "https://github.com/wisekaa03/multer-media"
+  },
+  
   "scripts": {
     "prepare": "yarn build",
     "build": "rimraf ./dist && tsc -p tsconfig.json",
