@@ -1,6 +1,6 @@
 {
   "name": "multer-media",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Multer Media files upload",
   "author": "Stanislav V Vyaliy",
   "private": false,
@@ -26,7 +26,6 @@
   "bugs": {
     "url": "https://github.com/wisekaa03/multer-media"
   },
-  
   "scripts": {
     "prepare": "yarn build",
     "build": "rimraf ./dist && tsc -p tsconfig.json",
@@ -51,16 +50,16 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^17.0.23",
     "@types/supertest": "^2.0.12",
-    "@typescript-eslint/eslint-plugin": "^5.17.0",
-    "@typescript-eslint/parser": "^5.17.0",
+    "@typescript-eslint/eslint-plugin": "^5.18.0",
+    "@typescript-eslint/parser": "^5.18.0",
     "eslint": "^8.12.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-airbnb-typescript": "^16.1.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.5.1",
-    "prettier": "^2.6.1",
+    "prettier": "^2.6.2",
     "source-map-support": "^0.5.21",
     "supertest": "^6.2.2",
     "ts-jest": "^27.1.4",
