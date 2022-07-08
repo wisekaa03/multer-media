@@ -1,6 +1,6 @@
 {
   "name": "multer-media",
-  "version": "3.1.7",
+  "version": "3.1.8",
   "description": "Multer Media files upload",
   "author": "Stanislav V Vyaliy",
   "private": false,
@@ -48,7 +48,7 @@
     "@types/ffmpeg-static": "^3.0.1",
     "@types/jest": "28.1.4",
     "@types/multer": "^1.4.7",
-    "@types/node": "^18.0.1",
+    "@types/node": "^18.0.3",
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
