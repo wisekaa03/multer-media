@@ -5,8 +5,11 @@ import { resolve as pathResolve } from 'node:path';
 import stream from 'node:stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
-import { ffprobe, type FfprobeData } from 'media-probe';
+import { ffprobe, FfprobeOptions, type FfprobeData } from 'media-probe';
 import { BinaryToTextEncoding } from 'crypto';
+import debugFunction from 'debug';
+
+const debug = debugFunction('multer-media');
 
 declare global {
   namespace Express {
@@ -95,6 +98,11 @@ export interface MediaStorageOptions {
    * @param src Stream Readable
    */
   finish?: MediaStorageDataCallback;
+
+  /**
+   * FFprobe options
+   */
+  ffprobeOptions?: FfprobeOptions;
 }
 
 export class MediaStorage implements StorageEngine {
@@ -106,11 +114,22 @@ export class MediaStorage implements StorageEngine {
 
   readonly algorithmEncoding: BinaryToTextEncoding;
 
+  readonly ffprobeOptions: FfprobeOptions;
+
   constructor(readonly options: MediaStorageOptions) {
-    this.getDestination = options.destination || this.getDefaultDestination;
-    this.getFilename = options.filename || this.getDefaultFilename;
-    this.algorithm = options.algorithm || 'sha256';
-    this.algorithmEncoding = options.algorithmEncoding || 'base64url';
+    this.getDestination = options.destination ?? this.getDefaultDestination;
+    this.getFilename = options.filename ?? this.getDefaultFilename;
+    this.algorithm = options.algorithm ?? 'sha256';
+    this.algorithmEncoding = options.algorithmEncoding ?? 'base64url';
+    this.ffprobeOptions = options.ffprobeOptions ?? {
+      showFormat: true,
+      showStreams: true,
+      showFrames: false,
+      showPackets: false,
+      showPrograms: false,
+      countFrames: false,
+      countPackets: false,
+    };
   }
 
   getDefaultDestination(
@@ -176,26 +195,21 @@ export class MediaStorage implements StorageEngine {
         file.stream.pipe(outStream);
 
         outStream.on('finish', () => {
-          let media: FfprobeData;
           const hash = md5sum.end().digest(this.algorithmEncoding);
           // eslint-disable-next-line no-param-reassign
           file.hash = hash;
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
-          ffprobe(finalPath, {
-            showFormat: true,
-            showStreams: true,
-            showFrames: false,
-            showPackets: false,
-            showPrograms: false,
-            countFrames: false,
-            countPackets: false,
-          })
+
+          let media: FfprobeData | undefined;
+          ffprobe(finalPath, this.ffprobeOptions)
             .then((probe) => {
               media = probe;
             })
-            .catch(() => {})
+            .catch((error: unknown) => {
+              debug("Error '%s': %s", finalPath, error.toString());
+            })
             .finally(() => {
               callback(null, {
                 destination: destinationPath,
@@ -228,15 +242,13 @@ export class MediaStorage implements StorageEngine {
   ): void {
     const { path } = file;
 
-    // eslint-disable-next-line
+    /* eslint-disable no-param-reassign */
     delete file.destination;
-    // eslint-disable-next-line
     delete file.filename;
-    // eslint-disable-next-line
     delete file.path;
+    /* eslint-enable no-param-reassign */
 
     unlink(path, callback);
-    unlink(file.path, callback);
   }
 }
 
