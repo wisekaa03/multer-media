@@ -1,6 +1,6 @@
 {
   "name": "multer-media",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "Multer Media files upload",
   "author": "Stanislav V Lanskoy",
   "private": false,
@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "debug": "^4.3.4",
+    "ffmpeg-static": "^5.2.0",
     "media-probe": "^1.0.1",
     "multer": "1.4.5-lts.1"
   },
