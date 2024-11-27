@@ -5,7 +5,7 @@ import { resolve as pathResolve } from 'node:path';
 import stream from 'node:stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
-import { ffprobe, FfprobeOptions, type FfprobeData } from 'media-probe';
+import { ffprobe, type FfprobeData } from 'fluent-ffmpeg';
 import { BinaryToTextEncoding } from 'crypto';
 import debugFunction from 'debug';
 
@@ -102,7 +102,7 @@ export interface MediaStorageOptions {
   /**
    * FFprobe options
    */
-  ffprobeOptions?: FfprobeOptions;
+  ffprobeOptions?: string[];
 }
 
 export class MediaStorage implements StorageEngine {
@@ -114,22 +114,14 @@ export class MediaStorage implements StorageEngine {
 
   readonly algorithmEncoding: BinaryToTextEncoding;
 
-  readonly ffprobeOptions: FfprobeOptions;
+  readonly ffprobeOptions: string[];
 
   constructor(readonly options: MediaStorageOptions) {
     this.getDestination = options.destination ?? this.getDefaultDestination;
     this.getFilename = options.filename ?? this.getDefaultFilename;
     this.algorithm = options.algorithm ?? 'sha256';
     this.algorithmEncoding = options.algorithmEncoding ?? 'base64url';
-    this.ffprobeOptions = options.ffprobeOptions ?? {
-      showFormat: true,
-      showStreams: true,
-      showFrames: false,
-      showPackets: false,
-      showPrograms: false,
-      countFrames: false,
-      countPackets: false,
-    };
+    this.ffprobeOptions = options.ffprobeOptions;
   }
 
   getDefaultDestination(
@@ -202,24 +194,17 @@ export class MediaStorage implements StorageEngine {
             this.options.finish(req, file, outStream);
           }
 
-          let media: FfprobeData | undefined;
-          ffprobe(finalPath, this.ffprobeOptions)
-            .then((probe) => {
-              media = probe;
-            })
-            .catch((error: unknown) => {
-              debug("Error '%s': %s", finalPath, error.toString());
-            })
-            .finally(() => {
-              callback(null, {
-                destination: destinationPath,
-                filename,
-                path: finalPath,
-                size: outStream.bytesWritten,
-                hash,
-                media,
-              });
+          ffprobe(finalPath, this.ffprobeOptions, (error, data) => {
+            if (error) { debug("Error '%s': %s", finalPath, error.toString()); }
+            callback(null, {
+              destination: destinationPath,
+              filename,
+              path: finalPath,
+              size: outStream.bytesWritten,
+              hash,
+              media: data,
             });
+          })
         });
       });
     });
