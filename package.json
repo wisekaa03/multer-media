@@ -1,6 +1,6 @@
 {
   "name": "multer-media",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Multer Media files upload",
   "author": "Stanislav V Lanskoy",
   "private": false,
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/wisekaa03/multer-media"
+    "url": "git+https://github.com/wisekaa03/multer-media.git"
   },
   "bugs": {
     "url": "https://github.com/wisekaa03/multer-media"
@@ -32,6 +32,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start:dev": "tsc -w",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "npm": "npm publish",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
