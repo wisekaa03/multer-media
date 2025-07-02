@@ -5,12 +5,13 @@ import { resolve as pathResolve } from 'node:path';
 import stream from 'node:stream';
 import type { StorageEngine } from 'multer';
 import type { Request } from 'express';
-import { ffprobe, type FfprobeData } from 'fluent-ffmpeg';
+import { ffprobe, FfprobeOptions, type FfprobeData } from 'media-probe';
 import { BinaryToTextEncoding } from 'crypto';
 import debugFunction from 'debug';
 
 const debug = debugFunction('multer-media');
 
+/* eslint-disable */
 declare global {
   namespace Express {
     namespace Multer {
@@ -22,6 +23,7 @@ declare global {
     }
   }
 }
+/* eslint-enable */
 
 export type Callback = (error: Error | null, path: string) => void;
 
@@ -102,7 +104,7 @@ export interface MediaStorageOptions {
   /**
    * FFprobe options
    */
-  ffprobeOptions?: string[];
+  ffprobeOptions?: FfprobeOptions;
 }
 
 export class MediaStorage implements StorageEngine {
@@ -114,7 +116,7 @@ export class MediaStorage implements StorageEngine {
 
   readonly algorithmEncoding: BinaryToTextEncoding;
 
-  readonly ffprobeOptions: string[];
+  readonly ffprobeOptions: FfprobeOptions;
 
   constructor(readonly options: MediaStorageOptions) {
     this.getDestination = options.destination ?? this.getDefaultDestination;
@@ -188,23 +190,26 @@ export class MediaStorage implements StorageEngine {
 
         outStream.on('finish', () => {
           const hash = md5sum.end().digest(this.algorithmEncoding);
-          // eslint-disable-next-line no-param-reassign
+
           file.hash = hash;
           if (this.options.finish) {
             this.options.finish(req, file, outStream);
           }
 
-          ffprobe(finalPath, this.ffprobeOptions, (error, data) => {
-            if (error) { debug("Error '%s': %s", finalPath, error.toString()); }
-            callback(null, {
-              destination: destinationPath,
-              filename,
-              path: finalPath,
-              size: outStream.bytesWritten,
-              hash,
-              media: data,
+          ffprobe(finalPath, this.ffprobeOptions)
+            .then((data) => {
+              callback(null, {
+                destination: destinationPath,
+                filename,
+                path: finalPath,
+                size: outStream.bytesWritten,
+                hash,
+                media: data,
+              });
+            })
+            .catch((error) => {
+              debug("Error '%s': %s", finalPath, error.toString());
             });
-          })
         });
       });
     });
@@ -227,11 +232,9 @@ export class MediaStorage implements StorageEngine {
   ): void {
     const { path } = file;
 
-    /* eslint-disable no-param-reassign */
     delete file.destination;
     delete file.filename;
     delete file.path;
-    /* eslint-enable no-param-reassign */
 
     unlink(path, callback);
   }
