@@ -42,7 +42,7 @@
   "dependencies": {
     "debug": "^4.4.1",
     "media-probe": "^1.0.1",
-    "multer": "2.0.1"
+    "multer": "2.0.2"
   },
   "devDependencies": {
     "@types/debug": "^4.1.12",
